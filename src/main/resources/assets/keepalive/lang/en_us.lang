@@ -1,0 +1,2 @@
+commands.keepalive.usage=Use /keepalive <subcommand>
+commands.keepalive.debug.usage=Use /keepalive debug

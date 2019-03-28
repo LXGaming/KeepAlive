@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package io.github.lxgaming.keepalive.configuration;
+package io.github.lxgaming.keepalive.interfaces.client;
 
-import io.github.lxgaming.keepalive.util.Reference;
-import net.minecraftforge.common.config.Config;
+import com.google.common.util.concurrent.ListenableFuture;
 
-@Config(modid = Reference.ID, name = Reference.NAME)
-public class Configuration {
+import java.util.concurrent.Callable;
+
+public interface IMixinMinecraft {
     
-    @Config.Name(value = "Debug")
-    public static boolean debug = false;
+    <V> ListenableFuture<V> scheduledTask(Callable<V> callable);
+    
+    ListenableFuture<Object> scheduledTask(Runnable runnable);
 }

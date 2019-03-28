@@ -14,14 +14,30 @@
  * limitations under the License.
  */
 
-package io.github.lxgaming.keepalive.configuration;
+package io.github.lxgaming.keepalive.server.command;
 
 import io.github.lxgaming.keepalive.util.Reference;
-import net.minecraftforge.common.config.Config;
+import net.minecraft.command.ICommandSender;
+import net.minecraftforge.server.command.CommandTreeBase;
 
-@Config(modid = Reference.ID, name = Reference.NAME)
-public class Configuration {
+public class KeepAliveCommand extends CommandTreeBase {
     
-    @Config.Name(value = "Debug")
-    public static boolean debug = false;
+    public KeepAliveCommand() {
+        addSubcommand(new DebugCommand());
+    }
+    
+    @Override
+    public String getName() {
+        return Reference.ID;
+    }
+    
+    @Override
+    public String getUsage(ICommandSender sender) {
+        return "commands.keepalive.usage";
+    }
+    
+    @Override
+    public int getRequiredPermissionLevel() {
+        return 0;
+    }
 }

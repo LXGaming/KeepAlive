@@ -1,0 +1,21 @@
+{
+  "required": true,
+  "minVersion": "0.7.10",
+  "package": "io.github.lxgaming.keepalive.mixin.core",
+  "refmap": "mixins.keepalive.refmap.json",
+  "target": "@env(DEFAULT)",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+  ],
+  "client": [
+    "client.network.MixinNetHandlerPlayClient",
+    "client.MixinMinecraft"
+  ],
+  "server": [
+    "server.network.MixinNetHandlerLoginServer",
+    "server.MixinDedicatedServer"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

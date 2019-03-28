@@ -5,29 +5,43 @@ buildscript {
             name = "minecraftforge"
             url = "http://files.minecraftforge.net/maven"
         }
+        maven {
+            name = "spongepowered"
+            url = "https://repo.spongepowered.org/maven"
+        }
     }
 
     dependencies {
+        classpath("com.github.jengelman.gradle.plugins:shadow:4.0.4")
         classpath("net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT")
+        classpath("org.spongepowered:mixingradle:0.6-SNAPSHOT")
     }
 }
 
+apply plugin: "com.github.johnrengelman.shadow"
 apply plugin: "java"
 apply plugin: "net.minecraftforge.gradle.forge"
+apply plugin: "org.spongepowered.mixin"
 apply plugin: "signing"
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 group = "io.github.lxgaming"
-archivesBaseName = "KeepAlive"
-version = "1.12.2-1.0.0"
+archivesBaseName = "keepalive"
+version = "1.12.2-1.0.0-beta"
 
 minecraft {
     version = "1.12.2-14.23.5.2768"
     runDir = "run"
     mappings = "stable_39"
     makeObfSourceJar = false
+}
+
+mixin {
+    defaultObfuscationEnv = searge
+    disableRefMapWarning = true
+    add(sourceSets.main, "mixins.keepalive.refmap.json")
 }
 
 configurations {
@@ -40,12 +54,46 @@ configurations {
 
 repositories {
     jcenter()
+    maven {
+        name = "spongepowered"
+        url = "https://repo.spongepowered.org/maven"
+    }
 }
 
 dependencies {
+    compile("org.spongepowered:mixin:0.7.11-SNAPSHOT") {
+        transitive = false
+    }
+}
+
+shadowJar {
+    classifier = "sponge"
+    configurations = [project.configurations.shadow]
+}
+
+reobf {
+    jar {
+        mappingType = "SEARGE"
+    }
+
+    shadowJar {
+        mappingType = "SEARGE"
+    }
 }
 
 jar {
+    manifest {
+        attributes(
+                "FMLCorePluginContainsFMLMod": true,
+                "ForceLoadAsMod": true,
+                "MixinConfigs": ""
+                        + "mixins.keepalive.core.json,"
+                        + "mixins.keepalive.forge.json",
+                "TweakClass": "org.spongepowered.asm.launch.MixinTweaker",
+                "TweakOrder": 0
+        )
+    }
+
     from {
         (configurations.compile - configurations.provided).findAll({
             it.isDirectory() || it.name.endsWith(".jar")
@@ -54,7 +102,10 @@ jar {
         })
     }
 
+    exclude("META-INF/*.DSA")
+    exclude("META-INF/*.RSA")
     exclude("dummyThing")
+    exclude("LICENSE.txt")
 }
 
 processResources {
@@ -65,6 +116,10 @@ processResources {
         include("mcmod.info")
         expand("version": version, "mcversion": minecraft.version)
     }
+}
+
+artifacts {
+    archives shadowJar
 }
 
 task signJar {

@@ -20,8 +20,11 @@ public class Reference {
     
     public static final String ID = "keepalive";
     public static final String NAME = "KeepAlive";
-    public static final String VERSION = "1.12.2-1.0.0";
+    public static final String VERSION = "1.12.2-1.0.0-beta";
     public static final String ACCEPTED_VERSIONS = "[1.12.2]";
     public static final String ACCEPTABLE_REMOTE_VERSIONS = "*";
     public static final String CERTIFICATE_FINGERPRINT = "565fa4dbf20e7c3c4423950ca8e0bdabf7568796";
+    
+    public static final String CLIENT_PROXY_CLASS = "io.github.lxgaming.keepalive.proxy.ClientProxy";
+    public static final String SERVER_PROXY_CLASS = "io.github.lxgaming.keepalive.proxy.ServerProxy";
 }

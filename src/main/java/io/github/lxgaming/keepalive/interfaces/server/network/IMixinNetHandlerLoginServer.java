@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-package io.github.lxgaming.keepalive.configuration;
+package io.github.lxgaming.keepalive.interfaces.server.network;
 
-import io.github.lxgaming.keepalive.util.Reference;
-import net.minecraftforge.common.config.Config;
+import net.minecraft.entity.player.EntityPlayerMP;
 
-@Config(modid = Reference.ID, name = Reference.NAME)
-public class Configuration {
+public interface IMixinNetHandlerLoginServer {
     
-    @Config.Name(value = "Debug")
-    public static boolean debug = false;
+    EntityPlayerMP getPlayer();
 }

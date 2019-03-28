@@ -17,52 +17,66 @@
 package io.github.lxgaming.keepalive.service;
 
 import io.github.lxgaming.keepalive.KeepAlive;
-import io.github.lxgaming.keepalive.util.Reference;
-import io.netty.buffer.Unpooled;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.network.NetHandlerPlayClient;
-import net.minecraft.network.INetHandler;
+import io.github.lxgaming.keepalive.manager.ConnectionManager;
+import io.netty.util.Attribute;
 import net.minecraft.network.NetworkManager;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.network.play.client.CPacketCustomPayload;
-import net.minecraftforge.fml.client.FMLClientHandler;
+import net.minecraft.network.play.server.SPacketKeepAlive;
+import net.minecraftforge.fml.common.network.handshake.NetworkDispatcher;
+
+import java.util.Iterator;
 
 public class KeepAliveService extends AbstractService {
     
     @Override
     public boolean prepareService() {
-        setDelay(20000L);
-        setInterval(20000L);
+        setInterval(1000L);
         return true;
     }
     
     @Override
     public void executeService() {
-        INetHandler netHandler = FMLClientHandler.instance().getClientPlayHandler();
-        if (netHandler == null) {
-            KeepAlive.getInstance().getLogger().error("NetHandler is null");
-            cancel();
-            return;
+        for (Iterator<NetworkManager> iterator = ConnectionManager.getConnections().iterator(); iterator.hasNext(); ) {
+            NetworkManager networkManager = iterator.next();
+            String username = ConnectionManager.getUsername(networkManager);
+            if (!networkManager.isChannelOpen()) {
+                KeepAlive.getInstance().debugMessage("Connection closed for {}", username);
+                ConnectionManager.removeConnection(networkManager);
+                continue;
+            }
+            
+            NetworkDispatcher.ConnectionType connectionType = ConnectionManager.getNetworkDispatcher(networkManager.channel()).getConnectionType();
+            if (connectionType != null) {
+                KeepAlive.getInstance().debugMessage("{} Connection for {}", connectionType, username);
+                ConnectionManager.removeConnection(networkManager);
+                continue;
+            }
+            
+            if (ConnectionManager.getDoneServer(networkManager.channel()).get() != Boolean.TRUE) {
+                KeepAlive.getInstance().debugMessage("Invalid State for {}", username);
+                continue;
+            }
+            
+            Attribute<Boolean> requested = ConnectionManager.getRequested(networkManager.channel());
+            if (requested.get() == Boolean.TRUE) {
+                KeepAlive.getInstance().debugMessage("KeepAlive already requested for {}", username);
+                continue;
+            }
+            
+            if (ConnectionManager.getDoneClient(networkManager.channel()).get() == Boolean.TRUE) {
+                KeepAlive.getInstance().debugMessage("Client Done for {}", username);
+                ConnectionManager.removeConnection(networkManager);
+                continue;
+            }
+            
+            Attribute<Long> key = ConnectionManager.getKey(networkManager.channel());
+            
+            long currentTime = System.currentTimeMillis();
+            if (key.get() == null || currentTime - key.get() >= 15000L) {
+                KeepAlive.getInstance().debugMessage("Sending KeepAlive {} to {}", currentTime, username);
+                requested.set(true);
+                key.set(currentTime);
+                networkManager.sendPacket(new SPacketKeepAlive(currentTime));
+            }
         }
-        
-        if (Minecraft.getMinecraft().getConnection() == netHandler) {
-            KeepAlive.getInstance().getLogger().warn("Minecraft has connected");
-            cancel();
-            return;
-        }
-        
-        NetworkManager networkManager = ((NetHandlerPlayClient) netHandler).getNetworkManager();
-        if (!networkManager.isChannelOpen()) {
-            KeepAlive.getInstance().getLogger().error("Channel is not open");
-            cancel();
-            return;
-        }
-        
-        networkManager.channel().writeAndFlush(new CPacketCustomPayload(Reference.ID, new PacketBuffer(Unpooled.buffer())));
-        KeepAlive.getInstance().getLogger().info("Sent CustomPayload");
-    }
-    
-    public boolean cancel() {
-        return isRunning() && getScheduledFuture().cancel(false);
     }
 }

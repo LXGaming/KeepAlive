@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "minVersion": "0.7.10",
+  "package": "io.github.lxgaming.keepalive.mixin.forge",
+  "refmap": "mixins.keepalive.refmap.json",
+  "target": "@env(DEFAULT)",
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [
+    "fml.common.network.handshake.MixinNetworkDispatcher"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-package io.github.lxgaming.keepalive.configuration;
+package io.github.lxgaming.keepalive.proxy;
 
-import io.github.lxgaming.keepalive.util.Reference;
-import net.minecraftforge.common.config.Config;
+import io.github.lxgaming.keepalive.listener.KeepAliveListener;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 
-@Config(modid = Reference.ID, name = Reference.NAME)
-public class Configuration {
+public class ClientProxy extends CommonProxy {
     
-    @Config.Name(value = "Debug")
-    public static boolean debug = false;
+    @Override
+    public void onInitialization(FMLInitializationEvent event) {
+        super.onInitialization(event);
+        
+        MinecraftForge.EVENT_BUS.register(new KeepAliveListener());
+    }
 }
